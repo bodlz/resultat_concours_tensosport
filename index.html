@@ -7,24 +7,50 @@
   <style>
     :root{ --bg:#0e1325; --card:#151b34; --txt:#eaf0ff; --mut:#a8b3d1; --accent:#ff6b6b; --accent2:#5b5bff; }
     *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;background:radial-gradient(1200px 700px at 20% -10%, #1b2550 0,transparent 60%),linear-gradient(180deg,#0c1122,#0e1325);color:var(--txt);display:flex;align-items:center;justify-content:center;padding:24px}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+      background:radial-gradient(1200px 700px at 20% -10%, #1b2550 0,transparent 60%),linear-gradient(180deg,#0c1122,#0e1325);
+      color:var(--txt);
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;
+    }
     .wrap{max-width:860px;width:100%}
     header{text-align:center;margin-bottom:18px}
     h1{margin:0 0 6px;font-size:clamp(22px,4.5vw,36px)}
     p{margin:0;color:var(--mut)}
-    .card{background:linear-gradient(180deg,#ffffff14,#00000014);border:1px solid #ffffff20;border-radius:18px;padding:22px;box-shadow:0 18px 60px #0007}
-    .center{display:flex;justify-content:center;align-items:center;gap:18px;flex-wrap:wrap}
-    .roulette{
-      width:160px;height:160px;border-radius:50%;display:grid;place-items:center;font-weight:800;letter-spacing:.3px;
-      background:
-        conic-gradient(from 0deg, var(--accent), var(--accent2), var(--accent)),
-        radial-gradient(circle at 50% 50%, #ffffff10 0 60%, transparent 61%);
-      color:white;border:6px solid #ffffff20;box-shadow:0 16px 40px #0008, inset 0 0 0 1px #ffffff35;
-      cursor:pointer;user-select:none; transition:.2s;
+    .card{
+      background:linear-gradient(180deg,#ffffff14,#00000014);
+      border:1px solid #ffffff20;
+      border-radius:18px;
+      padding:22px;
+      box-shadow:0 18px 60px #0007;
     }
-    .roulette:hover{transform:translateY(-2px)}
-    .spin{animation:spin 1s linear infinite}
+    .center{display:flex;justify-content:center;align-items:center;gap:18px;flex-wrap:wrap}
+
+    /* --- Roulette stylisée avec image et effet lumineux --- */
+    .roulette{
+      width:160px;
+      height:160px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      font-weight:800;
+      letter-spacing:.3px;
+      background:
+        linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)),
+        url('https://raw.githubusercontent.com/bodlz/resultat_concours_tensosport/main/IMG_6278.jpeg') center/cover no-repeat;
+      color:white;
+      border:6px solid #ffffff20;
+      box-shadow:0 16px 40px #0008, inset 0 0 0 1px #ffffff35;
+      cursor:pointer;
+      user-select:none;
+      transition:transform 0.5s ease;
+    }
+    .roulette:hover{transform:scale(1.05)}
+    .spin{animation:spin 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+
     .winners{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
     .win{background:#0f1733;border:1px solid #ffffff26;border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px}
     .badge{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:900;
@@ -38,16 +64,16 @@
   <canvas id="confetti"></canvas>
   <div class="wrap">
     <header>
-      <h1>Résultats — Concours de ldlz la plus belle <span style="color:var(--accent2)">Tensosport 🏀 </span></h1>
+      <h1>Résultats — Concours de la plus belle <span style="color:var(--accent2)">Tensosport 🏀</span></h1>
       <p>Appuie sur la <b>roulette</b> galinette et <b>5 gagnants</b> vont apparaître.</p>
     </header>
 
     <div class="card">
       <div class="center" style="margin-bottom:10px">
-        <div id="roulette" class="roulette" title="Lancer le tirage">Fais moi tourner </div>
+        <div id="roulette" class="roulette" title="Lancer le tirage">Fais moi tourner</div>
         <div>
           <div id="status" class="small">Chargement des participants…</div>
-          <div class="small">Règle : Plus tu commentes, plus tu as de chances, alors la prochaine fois, n'hésites pas !!!</div>
+          <div class="small">Règle : Plus tu commentes, plus tu as de chances, alors la prochaine fois, n’hésite pas !!!</div>
         </div>
       </div>
       <div id="winners" class="winners" aria-live="polite" aria-atomic="true"></div>
@@ -57,7 +83,7 @@
   <script>
     // ---- config ----
     const participantsUrl = "https://raw.githubusercontent.com/bodlz/resultat_concours_tensosport/refs/heads/main/participants_counts.csv";
-    const N_WINNERS = 5; // nombre de gagnants
+    const N_WINNERS = 5;
 
     const $ = s => document.querySelector(s);
     const status = (t, ok=false)=>{ const el=$('#status'); el.textContent=t; el.style.color = ok ? '#22c55e' : 'var(--mut)'; };
@@ -79,7 +105,6 @@
 
     // Weighted unique draw
     function drawWeightedUnique(participants, k){
-      // pool with repetitions
       let pool = [];
       participants.forEach(p => { for(let i=0;i<p.count;i++) pool.push(p.username); });
       const winners = [];
@@ -90,7 +115,7 @@
         if(!seen.has(pick)){
           seen.add(pick);
           winners.push(pick);
-          pool = pool.filter(x => x !== pick); // remove winner's tickets
+          pool = pool.filter(x => x !== pick);
         }
       }
       return winners.map(u => {
@@ -157,7 +182,7 @@
       spinning = true;
       btn.classList.add('spin');
       status('Tirage en cours…');
-      await new Promise(r=>setTimeout(r, 1800)); // petite attente "effet"
+      await new Promise(r=>setTimeout(r, 1800));
       const winners = drawWeightedUnique(participants, N_WINNERS);
       btn.classList.remove('spin'); spinning = false;
       renderWinners(winners);
